@@ -19,7 +19,9 @@ var model = {
             imgSrc: "img/3.jpg",
             clickCount: 0
         }
-    ]
+    ],
+
+    showAdminArea: false
 };
 
 
@@ -29,6 +31,7 @@ var octopus = {
         model.currentCat = model.cats[0];
         catView.init();
         catListView.init();
+        adminAreaView.init();
     },
 
     getCurrentCat: function() {
@@ -45,6 +48,27 @@ var octopus = {
 
     incrementCounter: function() {
         model.currentCat.clickCount++;
+        catView.render();
+    },
+
+    setIfAdminAreaShow: function(showAdminArea) {
+        model.showAdminArea = showAdminArea;
+    },
+
+    getIfAdminAreaShow: function() {
+        return model.showAdminArea;
+    },
+
+    updateData: function(newName, newImgSrc, newClickCount) {
+        var cat = model.currentCat;
+        var currentCatPosition = model.cats.indexOf(cat);
+        cat.name = newName;
+        cat.imgSrc = newImgSrc;
+        cat.clickCount = newClickCount;
+        model.cats[currentCatPosition] = cat;
+        model.setIfAdminAreaShow = false;
+        adminAreaView.render();
+        catListView.render();
         catView.render();
     }
 };
@@ -95,10 +119,64 @@ var catListView = {
                 return function() {
                     octopus.setCurrentCat(catCopy);
                     catView.render();
+                    adminAreaView.render();
                 }
             }(cat));
 
             this.catListElem.appendChild(elem);
+        }
+    }
+};
+
+var adminAreaView = {
+    init: function() {
+        this.adminButtonElem = document.getElementById('admin-button');
+        this.adminButtonElem.addEventListener('click', function() {
+            octopus.setIfAdminAreaShow(true);
+            adminAreaView.render();
+        });
+
+        this.adminAreaElem = document.getElementById('admin-area');
+
+        // this.saveFormElem = document.getElementById('save-form');
+        this.saveButton = document.getElementById('save-button');
+        this.saveButton.addEventListener('click', function() {
+            octopus.updateData(document.getElementById('cat-name-input').value,
+                                document.getElementById('cat-img-url-input').value,
+                                document.getElementById('click-count-input').value);
+        });
+
+        // this.saveFormElem.addEventListener('submit', function() {
+        //     octopus.updateData(document.getElementById('cat-name-input').value,
+        //                         document.getElementById('cat-img-url-input').value,
+        //                         document.getElementById('click-count-input').value);
+        // });
+
+        this.catNameInputElem = document.getElementById('cat-name-input');
+        this.catImgUrlInputElem = document.getElementById('cat-img-url-input');
+        this.catClickCountInputElem = document.getElementById('click-count-input');
+
+        this.cancelButtonElem = document.getElementById('cancel-button');
+        this.cancelButtonElem.addEventListener('click', function() {
+            octopus.setIfAdminAreaShow(false);
+            adminAreaView.render();
+        })
+
+        this.render();
+    },
+
+    render: function() {
+        var currentCat = octopus.getCurrentCat();
+        this.catNameInputElem.value = currentCat.name;
+        this.catImgUrlInputElem.value = currentCat.imgSrc;
+        this.catClickCountInputElem.value = currentCat.clickCount;
+
+        if (octopus.getIfAdminAreaShow())
+        {
+            this.adminAreaElem.style.display = "block";
+        }
+        else {
+            this.adminAreaElem.style.display = "none";
         }
     }
 };
